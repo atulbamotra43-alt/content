@@ -18,6 +18,12 @@ uvicorn main:app --reload
 
 Interactive API documentation is available at `http://127.0.0.1:8000/docs`.
 
+Run the API tests with:
+
+```bash
+pytest
+```
+
 ### Main endpoints
 
 - `GET /books` — list books; use `?search=term` to filter

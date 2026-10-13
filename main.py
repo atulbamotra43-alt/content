@@ -266,7 +266,12 @@ def main():
             delete_book(books)
         elif choice == "7":
             show_statistics(books)
-        
+        elif choice == "8":
+            print("Thank you for using the Library Management System!")
+            break
+        else:
+            print("Invalid choice. Please select from 1 to 8.")
+
 
 if __name__ == "__main__":
     main()

@@ -6,6 +6,11 @@ from datetime import date
 FILE_NAME = "library_data.json"
 
 
+def load_books():
+    """Load books from the JSON file."""
+    if not os.path.exists(FILE_NAME):
+        return []
+
     try:
         with open(FILE_NAME, "r", encoding="utf-8") as file:
             data = json.load(file)
@@ -16,6 +21,10 @@ FILE_NAME = "library_data.json"
         print("Warning: Invalid library data.")
         return []
 
+    except (json.JSONDecodeError, OSError):
+        print("Warning: Could not read the library file.")
+        return []
+
 
 def save_books(books):
     """Save books to the JSON file."""
@@ -24,7 +33,10 @@ def save_books(books):
             json.dump(books, file, indent=4)
         return True
 
-   
+    except OSError:
+        print("Error: Could not save library data.")
+        return False
+
 
 def add_book(books):
     """Add a new book to the library."""

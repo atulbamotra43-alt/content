@@ -3,29 +3,7 @@ import json
 import os
 from datetime import date
 
-from fastapi import FastAPI, HTTPException, Query
-from pydantic import BaseModel, Field
-
 FILE_NAME = "library_data.json"
-
-app = FastAPI(
-    title="Library Management API",
-    description="A REST API for managing library books.",
-    version="1.0.0",
-)
-
-
-class BookCreate(BaseModel):
-    """Request body for adding a book."""
-
-    title: str = Field(..., min_length=1)
-    author: str = Field(..., min_length=1)
-
-
-class IssueRequest(BaseModel):
-    """Request body for issuing a book."""
-
-    student_name: str = Field(..., min_length=1)
 
 
 def load_books():
@@ -58,132 +36,6 @@ def save_books(books):
     except OSError:
         print("Error: Could not save library data.")
         return False
-
-
-def find_book(books, book_id):
-    """Find a book by ID."""
-    return next((book for book in books if book.get("id") == book_id), None)
-
-
-@app.get("/", tags=["General"])
-def root():
-    """Return basic API information."""
-    return {"message": "Library Management API", "docs": "/docs"}
-
-
-@app.get("/books", tags=["Books"])
-def get_books(search: str | None = Query(default=None, description="Search by title or author")):
-    """Return all books, optionally filtered by title or author."""
-    books = load_books()
-
-    if search:
-        query = search.strip().lower()
-        books = [
-            book for book in books
-            if query in book["title"].lower()
-            or query in book["author"].lower()
-        ]
-
-    return books
-
-
-@app.get("/books/{book_id}", tags=["Books"])
-def get_book(book_id: int):
-    book = find_book(load_books(), book_id)
-    if book is None:
-        raise HTTPException(status_code=404, detail="Book not found")
-    return book
-
-
-@app.post("/books", status_code=201, tags=["Books"])
-def create_book(book_data: BookCreate):
-    books = load_books()
-    book_id = max((book.get("id", 0) for book in books), default=0) + 1
-    book = {
-        "id": book_id,
-        "title": book_data.title.strip(),
-        "author": book_data.author.strip(),
-        "issued": False,
-        "issued_to": "",
-        "issue_date": "",
-    }
-
-    if not book["title"] or not book["author"]:
-        raise HTTPException(status_code=422, detail="Title and author cannot be empty")
-
-    books.append(book)
-    if not save_books(books):
-        raise HTTPException(status_code=500, detail="Could not save library data")
-    return book
-
-
-@app.post("/books/{book_id}/issue", tags=["Books"])
-def issue_book_api(book_id: int, issue_data: IssueRequest):
-    books = load_books()
-    book = find_book(books, book_id)
-
-    if book is None:
-        raise HTTPException(status_code=404, detail="Book not found")
-    if book["issued"]:
-        raise HTTPException(status_code=409, detail="This book is already issued")
-
-    student_name = issue_data.student_name.strip()
-    if not student_name:
-        raise HTTPException(status_code=422, detail="Student name cannot be empty")
-
-    book["issued"] = True
-    book["issued_to"] = student_name
-    book["issue_date"] = date.today().isoformat()
-
-    if not save_books(books):
-        raise HTTPException(status_code=500, detail="Could not save library data")
-    return book
-
-
-@app.post("/books/{book_id}/return", tags=["Books"])
-def return_book_api(book_id: int):
-    books = load_books()
-    book = find_book(books, book_id)
-
-    if book is None:
-        raise HTTPException(status_code=404, detail="Book not found")
-    if not book["issued"]:
-        raise HTTPException(status_code=409, detail="This book is not currently issued")
-
-    book["issued"] = False
-    book["issued_to"] = ""
-    book["issue_date"] = ""
-
-    if not save_books(books):
-        raise HTTPException(status_code=500, detail="Could not save library data")
-    return book
-
-
-@app.delete("/books/{book_id}", tags=["Books"])
-def delete_book_api(book_id: int):
-    books = load_books()
-    book = find_book(books, book_id)
-
-    if book is None:
-        raise HTTPException(status_code=404, detail="Book not found")
-    if book["issued"]:
-        raise HTTPException(status_code=409, detail="Return this book before deleting it")
-
-    books.remove(book)
-    if not save_books(books):
-        raise HTTPException(status_code=500, detail="Could not save library data")
-    return {"message": "Book deleted successfully", "book_id": book_id}
-
-
-@app.get("/statistics", tags=["General"])
-def statistics():
-    books = load_books()
-    issued = sum(1 for book in books if book["issued"])
-    return {
-        "total_books": len(books),
-        "available_books": len(books) - issued,
-        "issued_books": issued,
-    }
 
 
 def add_book(books):
@@ -389,7 +241,15 @@ def main():
 
     while True:
         print("\n======= LIBRARY MANAGEMENT =======")
-        
+        print("1. Add Book")
+        print("2. View All Books")
+        print("3. Search Book")
+        print("4. Issue Book")
+        print("5. Return Book")
+        print("6. Delete Book")
+        print("7. View Statistics")
+        print("8. Exit")
+
         choice = input("Enter your choice (1-8): ").strip()
 
         if choice == "1":
@@ -406,7 +266,12 @@ def main():
             delete_book(books)
         elif choice == "7":
             show_statistics(books)
-        
+        elif choice == "8":
+            print("Thank you for using the Library Management System!")
+            break
+        else:
+            print("Invalid choice. Please select from 1 to 8.")
+
 
 if __name__ == "__main__":
     main()

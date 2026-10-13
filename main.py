@@ -241,15 +241,7 @@ def main():
 
     while True:
         print("\n======= LIBRARY MANAGEMENT =======")
-        print("1. Add Book")
-        print("2. View All Books")
-        print("3. Search Book")
-        print("4. Issue Book")
-        print("5. Return Book")
-        print("6. Delete Book")
-        print("7. View Statistics")
-        print("8. Exit")
-
+        
         choice = input("Enter your choice (1-8): ").strip()
 
         if choice == "1":
@@ -266,12 +258,7 @@ def main():
             delete_book(books)
         elif choice == "7":
             show_statistics(books)
-        elif choice == "8":
-            print("Thank you for using the Library Management System!")
-            break
-        else:
-            print("Invalid choice. Please select from 1 to 8.")
-
+        
 
 if __name__ == "__main__":
     main()
